@@ -5,7 +5,6 @@ import Dataset from "../dataset/csse_covid_19_data/csse_covid_19_time_series/tim
 export default class Visualizer extends React.Component {
   render() {
     const text = FileAttachments(Dataset);
-    console.log(text);
     return (
       <div>
         <h1>{text}</h1>
