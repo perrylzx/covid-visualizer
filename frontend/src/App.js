@@ -1,10 +1,10 @@
 import React from "react";
-import Visualizer from "./components/Visualizer";
+import CovidVisualizer from "./components/CovidVisualizer";
 
 function App() {
   return (
     <div>
-      <Visualizer />
+      <CovidVisualizer />
     </div>
   );
 }
