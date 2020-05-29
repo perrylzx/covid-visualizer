@@ -29,9 +29,19 @@ router.get("/", async (req, res) => {
     )
     .on("error", (error) => console.error(error))
     // on data event, every append every chunk of data to chunks array
-    .on("data", (chunk) => chunks.push(chunk))
+    .on("data", (chunk) => {
+      const countryToCases = chunk["Country/Region"];
+      delete chunk["Lat"];
+      delete chunk["Long"];
+      delete chunk["Country/Region"];
+      delete chunk["Province/State"];
+      const casesToCountry = chunk;
+      chunks.push({ [countryToCases]: casesToCountry });
+    })
     // on end event, send completed chunks array
-    .on("end", () => res.send(chunks));
+    .on("end", () => {
+      res.send(chunks);
+    });
 });
 
 module.exports = router;
