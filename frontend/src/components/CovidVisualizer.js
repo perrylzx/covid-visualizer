@@ -53,6 +53,7 @@ export default class CovidVisualizer extends React.Component {
       .select(this.myRef.current)
       .append("svg")
       .style("border-style", "solid")
+      .style("background-color", "black")
       .attr("width", width + margin.left + margin.right)
       .attr("height", height + margin.top + margin.bottom)
       .append("g")
@@ -76,10 +77,11 @@ export default class CovidVisualizer extends React.Component {
     node
       .append("g")
       .attr("transform", "translate(0," + height + ")")
+      .style("color", "white")
       .call(d3.axisBottom(x));
 
     // Add the Y Axis
-    node.append("g").call(d3.axisLeft(y));
+    node.append("g").call(d3.axisLeft(y)).style("color", "white");
   }
 
   async componentDidMount() {
