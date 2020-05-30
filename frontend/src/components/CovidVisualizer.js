@@ -1,22 +1,24 @@
 import * as d3 from "d3";
 import React from "react";
 
+// TODO(PERRY): make this drawchart function display new paths for each country selected from CounterSelector.js dropdown
+
 export default class CovidVisualizer extends React.Component {
   constructor(props) {
     super(props);
     this.myRef = React.createRef();
-    this.state = {};
+    this.state = { covidCases: [] };
   }
   drawChart() {
-    const dates = [];
-    const cases = [];
+    const dateRange = [];
+    const caseRange = [];
     const pathData = [];
 
     var margin = { top: 20, right: 20, bottom: 30, left: 50 },
       width = 960 - margin.left - margin.right,
       height = 500 - margin.top - margin.bottom;
 
-    //format the data
+    // format the data
     const parseTime = d3.timeParse("%m/%e/%y");
 
     // set the ranges
@@ -29,20 +31,19 @@ export default class CovidVisualizer extends React.Component {
         this.Singapore = country.Singapore;
         for (let [key, value] of Object.entries(this.Singapore)) {
           key = parseTime(key);
-          dates.push(key);
-          cases.push(value);
-          const datesToCases = { date: key, cases: value };
+          dateRange.push(key); // for now, dates and cases array is only for setting the domain
+          caseRange.push(value); // what
+          const datesToCases = { date: key, cases: value }; // this is the data which we use to draw the path
           pathData.push(datesToCases);
         }
       }
     });
-
     // define the 1st line
     const valueline = d3
       .line()
       // this uses the d3.scaleTime function in the variable x on the array of dates
       .x((d) => {
-        return x(d.date); // this might be the problem. maybe this function requires to look at the dictionary data and not from the array as it needs to correlate the case to the date
+        return x(d.date);
       })
       .y((d) => {
         return y(d.cases);
@@ -60,10 +61,10 @@ export default class CovidVisualizer extends React.Component {
       .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
     // scale the range of the data
-    x.domain(d3.extent(dates));
-    y.domain([0, d3.max(cases)]);
+    x.domain(d3.extent(dateRange));
+    y.domain([0, d3.max(caseRange)]);
 
-    //add the singapore path
+    // add the singapore path
     node
       .append("path")
       .data([pathData])
