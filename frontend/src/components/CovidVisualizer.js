@@ -1,14 +1,21 @@
 import * as d3 from "d3";
 import React from "react";
+import Dropdown from "react-bootstrap/Dropdown";
+import DropdownButton from "react-bootstrap/DropdownButton";
 
 // TODO(PERRY): make this drawchart function display new paths for each country selected from CounterSelector.js dropdown
-
 export default class CovidVisualizer extends React.Component {
   constructor(props) {
     super(props);
     this.myRef = React.createRef();
-    this.state = { covidCases: [] };
+    this.state = { covidCases: [], selectedCountries: [], listOfCountries: [] };
   }
+
+  selectMultipleCountries(eventkey) {
+    this.state.selectedCountries.push(this.state.listOfCountries[eventkey]);
+    console.log(this.state.selectedCountries);
+  }
+
   drawChart() {
     const dateRange = [];
     const caseRange = [];
@@ -91,11 +98,25 @@ export default class CovidVisualizer extends React.Component {
         return res.json();
       })
       .then((res) => {
-        this.setState({ covidCases: res });
+        this.setState({ covidCases: res[1], listOfCountries: res[0] });
       });
     this.drawChart();
   }
   render() {
-    return <div ref={this.myRef}></div>;
+    return (
+      <div ref={this.myRef}>
+        <DropdownButton
+          onSelect={this.selectMultipleCountries.bind(this)}
+          id="dropdown-basic-button"
+          title="Country"
+        >
+          {this.state.listOfCountries.map((country, i) => (
+            <Dropdown.Item key={i} eventKey={i}>
+              {country}
+            </Dropdown.Item>
+          ))}
+        </DropdownButton>
+      </div>
+    );
   }
 }
