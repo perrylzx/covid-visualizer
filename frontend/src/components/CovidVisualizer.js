@@ -4,6 +4,8 @@ import Dropdown from "react-bootstrap/Dropdown";
 import DropdownButton from "react-bootstrap/DropdownButton";
 
 // TODO(PERRY): make this drawchart function display new paths for each country selected from CounterSelector.js dropdown
+/* TODO(PERRY): there are multiple states for some countries, right now backend drops the state column and this component receives only selected countries and matches it to the first row from the dataset. eg;
+ when you select china from the dropdown, it finds Anhui, China. fix this bug*/
 export default class CovidVisualizer extends React.Component {
   constructor(props) {
     super(props);
@@ -13,7 +15,6 @@ export default class CovidVisualizer extends React.Component {
 
   selectMultipleCountries(eventkey) {
     this.state.selectedCountries.push(this.state.listOfCountries[eventkey]);
-    console.log(this.state.selectedCountries);
   }
 
   drawChart() {
@@ -39,7 +40,7 @@ export default class CovidVisualizer extends React.Component {
         for (let [key, value] of Object.entries(this.Singapore)) {
           key = parseTime(key);
           dateRange.push(key); // for now, dates and cases array is only for setting the domain
-          caseRange.push(value); // what
+          caseRange.push(value);
           const datesToCases = { date: key, cases: value }; // this is the data which we use to draw the path
           pathData.push(datesToCases);
         }
@@ -98,7 +99,14 @@ export default class CovidVisualizer extends React.Component {
         return res.json();
       })
       .then((res) => {
-        this.setState({ covidCases: res[1], listOfCountries: res[0] });
+        /*         temporary fix as i did not foresee multiple country data rows due to multiple states so for the time being i will remove duplicates from the list of countries.
+ this will have a bug where the graph will display the path for the first row that matches the country from the dataset even when it has multiple states*/
+        const countryListSet = new Set(res[0]);
+        const countryListArray = [...countryListSet];
+        this.setState({
+          covidCases: res[1],
+          listOfCountries: countryListArray,
+        });
       });
     this.drawChart();
   }
