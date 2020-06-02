@@ -1,8 +1,10 @@
 import cookieParser from "cookie-parser";
+import "core-js";
 import cors from "cors";
 import express from "express";
 import logger from "morgan";
 import path from "path";
+import "regenerator-runtime";
 import fetchData from "./routes/fetchData";
 const app = express();
 
