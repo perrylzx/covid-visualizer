@@ -1,6 +1,6 @@
 {
   "name": "frontend",
-  "homepage": "https://perrylzx.github.io/covid-visualizer/frontend",
+  "homepage": "https://perrylzx.github.io/covid-visualizer",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
