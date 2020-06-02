@@ -1,9 +1,9 @@
-var express = require("express");
-var router = express.Router();
 import download from "download-git-repo";
+import express from "express";
 import fs from "fs";
 import papa from "papaparse";
 import path from "path";
+const router = express.Router();
 
 /* GET home page. */
 router.get("/", async (req, res) => {
