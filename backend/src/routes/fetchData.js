@@ -15,7 +15,6 @@ router.get("/", async (req, res) => {
   const dataToSend = [];
   fs.createReadStream(
     path.resolve(
-      "src",
       "dataset",
       "csse_covid_19_data",
       "csse_covid_19_time_series",
