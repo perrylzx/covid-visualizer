@@ -3,6 +3,11 @@ import React from "react";
 import Dropdown from "react-bootstrap/Dropdown";
 import DropdownButton from "react-bootstrap/DropdownButton";
 
+var unparsedCountryList = [];
+var dateRange = [];
+var caseRange = [];
+var pathData = [];
+
 // TODO(PERRY): make this drawchart function display new paths for each country selected from CounterSelector.js dropdown
 /* TODO(PERRY): there are multiple states for some countries, right now backend drops the state column and this component receives only selected countries and matches it to the first row from the dataset. eg;
  when you select china from the dropdown, it finds Anhui, China. fix this bug*/
@@ -12,40 +17,19 @@ export default class CovidVisualizer extends React.Component {
     this.myRef = React.createRef();
     this.state = { covidCases: [], selectedCountries: [], listOfCountries: [] };
   }
-
-  selectMultipleCountries(eventkey) {
-    this.state.selectedCountries.push(this.state.listOfCountries[eventkey]);
-  }
+  // format the data
+  parseTime = d3.timeParse("%m/%e/%y");
 
   drawChart() {
-    const dateRange = [];
-    const caseRange = [];
-    const pathData = [];
-
     var margin = { top: 20, right: 20, bottom: 30, left: 50 },
       width = 960 - margin.left - margin.right,
       height = 500 - margin.top - margin.bottom;
-
-    // format the data
-    const parseTime = d3.timeParse("%m/%e/%y");
 
     // set the ranges
     var x = d3.scaleTime().range([0, width]);
     var y = d3.scaleLinear().range([height, 0]);
 
-    // format data and push dates and case numbers to array
-    this.state.covidCases.forEach((country) => {
-      if (country.hasOwnProperty("Singapore")) {
-        this.Singapore = country.Singapore;
-        for (let [key, value] of Object.entries(this.Singapore)) {
-          key = parseTime(key);
-          dateRange.push(key); // for now, dates and cases array is only for setting the domain
-          caseRange.push(value);
-          const datesToCases = { date: key, cases: value }; // this is the data which we use to draw the path
-          pathData.push(datesToCases);
-        }
-      }
-    });
+    console.log(pathData);
     // define the 1st line
     const valueline = d3
       .line()
@@ -57,14 +41,7 @@ export default class CovidVisualizer extends React.Component {
         return y(d.cases);
       });
 
-    // appending svg to ref and a group element
-    const node = d3
-      .select(this.myRef.current)
-      .append("svg")
-      .style("border-style", "solid")
-      .style("background-color", "black")
-      .attr("width", width + margin.left + margin.right)
-      .attr("height", height + margin.top + margin.bottom)
+    this.node = this.node
       .append("g")
       .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
@@ -73,9 +50,9 @@ export default class CovidVisualizer extends React.Component {
     y.domain([0, d3.max(caseRange)]);
 
     // add the singapore path
-    node
+    this.node
       .append("path")
-      .data([pathData])
+      .data([pathData[0]])
       .attr("class", "line")
       .attr("d", valueline)
       .style("stroke-width", "2px")
@@ -83,18 +60,40 @@ export default class CovidVisualizer extends React.Component {
       .style("fill", "none");
 
     // Add the X Axis
-    node
+    this.node
       .append("g")
       .attr("transform", "translate(0," + height + ")")
       .style("color", "white")
       .call(d3.axisBottom(x));
 
     // Add the Y Axis
-    node.append("g").call(d3.axisLeft(y)).style("color", "white");
+    this.node.append("g").call(d3.axisLeft(y)).style("color", "white");
+  }
+
+  // fetches the selected country from the dropdown and parses it for data
+  selectMultipleCountries(eventkey) {
+    this.state.selectedCountries.push(this.state.listOfCountries[eventkey]);
+    this.state.covidCases.forEach((country) => {
+      if (country.hasOwnProperty(this.state.listOfCountries[eventkey])) {
+        unparsedCountryList.push(country[this.state.listOfCountries[eventkey]]);
+      }
+    });
+    for (let i = 0; i < unparsedCountryList.length; i++) {
+      var countryData = [];
+      for (let [key, value] of Object.entries(unparsedCountryList[i])) {
+        key = this.parseTime(key);
+        dateRange.push(key);
+        caseRange.push(value);
+        const datesToCases = { date: key, cases: value };
+        countryData.push(datesToCases);
+      }
+    }
+    pathData.push(countryData);
+    this.drawChart();
   }
 
   async componentDidMount() {
-    await fetch("https://arcane-plains-12569.herokuapp.com/download")
+    await fetch("http://localhost:3001/download")
       .then((res) => {
         return res.json();
       })
@@ -108,8 +107,20 @@ export default class CovidVisualizer extends React.Component {
           listOfCountries: countryListArray,
         });
       });
-    this.drawChart();
+    var margin = { top: 20, right: 20, bottom: 30, left: 50 },
+      width = 960 - margin.left - margin.right,
+      height = 500 - margin.top - margin.bottom;
+
+    // appending svg to ref and a group element
+    this.node = d3
+      .select(this.myRef.current)
+      .append("svg")
+      .style("border-style", "solid")
+      .style("background-color", "black")
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom);
   }
+
   render() {
     return (
       <div ref={this.myRef}>
