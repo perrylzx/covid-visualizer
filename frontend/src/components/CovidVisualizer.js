@@ -11,6 +11,7 @@ var pathData = [];
 // TODO(PERRY): make this drawchart function display new paths for each country selected from CounterSelector.js dropdown
 /* TODO(PERRY): there are multiple states for some countries, right now backend drops the state column and this component receives only selected countries and matches it to the first row from the dataset. eg;
  when you select china from the dropdown, it finds Anhui, China. fix this bug*/
+// TODO(PERRY)(bug): upon selecting a country, it calls the drawchart function which appends new paths, x and y axis every time. fix it so that selecting new countries merely updates the x and y axis with new domains and appends path properly
 export default class CovidVisualizer extends React.Component {
   constructor(props) {
     super(props);
