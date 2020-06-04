@@ -1,15 +1,26 @@
 import download from "download-git-repo";
 import express from "express";
 import fs from "fs";
+import cron from "node-cron";
 import papa from "papaparse";
 import path from "path";
 const router = express.Router();
 
+cron.schedule(
+  "0 1 * * *",
+  () => {
+    download("CSSEGISandData/COVID-19", "./src/dataset", (err) => {
+      console.log(err ? err : "Success");
+    });
+  },
+  {
+    scheduled: true,
+    timezone: "Asia/Singapore",
+  }
+);
+
 /* GET home page. */
 router.get("/", (req, res) => {
-  download("CSSEGISandData/COVID-19", "./src/dataset", (err) => {
-    console.log(err ? err : "Success");
-  });
   const countryData = [];
   const countryList = [];
   const dataToSend = [];
