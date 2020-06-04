@@ -6,8 +6,8 @@ import path from "path";
 const router = express.Router();
 
 /* GET home page. */
-router.get("/", async (req, res) => {
-  await download("CSSEGISandData/COVID-19", "./src/dataset", (err) => {
+router.get("/", (req, res) => {
+  download("CSSEGISandData/COVID-19", "./src/dataset", (err) => {
     console.log(err ? err : "Success");
   });
   const countryData = [];
