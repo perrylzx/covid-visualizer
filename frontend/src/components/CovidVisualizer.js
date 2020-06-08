@@ -7,6 +7,11 @@ var unparsedCountryList = [];
 var dateRange = [];
 var caseRange = [];
 var pathData = [];
+var color = d3.schemeCategory10;
+
+var margin = { top: 20, right: 20, bottom: 30, left: 50 },
+  width = 960 - margin.left - margin.right,
+  height = 500 - margin.top - margin.bottom;
 
 // TODO(PERRY): make this drawchart function display new paths for each country selected from CounterSelector.js dropdown
 /* TODO(PERRY): there are multiple states for some countries, right now backend drops the state column and this component receives only selected countries and matches it to the first row from the dataset. eg;
@@ -16,21 +21,22 @@ export default class CovidVisualizer extends React.Component {
   constructor(props) {
     super(props);
     this.myRef = React.createRef();
-    this.state = { covidCases: [], selectedCountries: [], listOfCountries: [] };
+    this.state = {
+      covidCases: [],
+      selectedCountries: [],
+      listOfCountries: [],
+      firstCountrySelected: false,
+    };
   }
   // format the data
+
   parseTime = d3.timeParse("%m/%e/%y");
 
   drawChart() {
-    var margin = { top: 20, right: 20, bottom: 30, left: 50 },
-      width = 960 - margin.left - margin.right,
-      height = 500 - margin.top - margin.bottom;
-
     // set the ranges
     var x = d3.scaleTime().range([0, width]);
     var y = d3.scaleLinear().range([height, 0]);
 
-    console.log(pathData);
     // define the 1st line
     const valueline = d3
       .line()
@@ -41,34 +47,58 @@ export default class CovidVisualizer extends React.Component {
       .y((d) => {
         return y(d.cases);
       });
-
-    this.node = this.node
-      .append("g")
-      .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
     // scale the range of the data
     x.domain(d3.extent(dateRange));
     y.domain([0, d3.max(caseRange)]);
 
-    // add the singapore path
-    this.node
-      .append("path")
-      .data([pathData[0]])
-      .attr("class", "line")
-      .attr("d", valueline)
-      .style("stroke-width", "2px")
-      .style("stroke", "steelblue")
-      .style("fill", "none");
+    if (this.state.firstCountrySelected === false) {
+      this.node = this.node
+        .append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+      // add the path
+      this.node
+        .data([pathData[0]])
+        .append("path")
+        .attr("class", "countryPath")
+        .attr("class", "line")
+        .attr("d", valueline)
+        .style("stroke-width", "2px")
+        .style("stroke", function (d, i) {
+          return color[i];
+        });
 
-    // Add the X Axis
-    this.node
-      .append("g")
-      .attr("transform", "translate(0," + height + ")")
-      .style("color", "white")
-      .call(d3.axisBottom(x));
-
-    // Add the Y Axis
-    this.node.append("g").call(d3.axisLeft(y)).style("color", "white");
+      // Add the Y Axis
+      this.yAxis = this.node
+        .append("g")
+        .call(d3.axisLeft(y))
+        .style("color", "white");
+      // Add the X Axis
+      this.node
+        .append("g")
+        .attr("transform", "translate(0," + height + ")")
+        .style("color", "white")
+        .call(d3.axisBottom(x));
+    } else {
+      y.domain([0, d3.max(caseRange)]);
+      this.yAxis.call(d3.axisLeft(y)).style("color", "white");
+      // add the path
+      // this path is only being rendered on the third selection.
+      console.log(pathData);
+      console.log(this.node.selectAll(".countryPath"));
+      this.node
+        .selectAll(".countryPath")
+        .data(pathData)
+        .enter()
+        .append("path")
+        .attr("class", "countryPath")
+        .attr("class", "line")
+        .attr("d", valueline)
+        .style("stroke-width", "2px")
+        .style("stroke", function (d, i) {
+          return color[i];
+        });
+    }
+    this.setState({ firstCountrySelected: true });
   }
 
   // fetches the selected country from the dropdown and parses it for data
@@ -108,10 +138,6 @@ export default class CovidVisualizer extends React.Component {
           listOfCountries: countryListArray,
         });
       });
-    var margin = { top: 20, right: 20, bottom: 30, left: 50 },
-      width = 960 - margin.left - margin.right,
-      height = 500 - margin.top - margin.bottom;
-
     // appending svg to ref and a group element
     this.node = d3
       .select(this.myRef.current)
@@ -126,8 +152,8 @@ export default class CovidVisualizer extends React.Component {
     return (
       <div ref={this.myRef}>
         <DropdownButton
-          onSelect={this.selectMultipleCountries.bind(this)}
           id="dropdown-basic-button"
+          onSelect={this.selectMultipleCountries.bind(this)}
           title="Country"
         >
           {this.state.listOfCountries.map((country, i) => (
