@@ -1,0 +1,9 @@
+#graph {
+  display: flex;
+  justify-content: center;
+}
+
+#dropdown-basic-button {
+  position: relative;
+  left: -10px;
+}

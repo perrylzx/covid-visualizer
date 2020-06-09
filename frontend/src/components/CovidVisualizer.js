@@ -2,6 +2,7 @@ import * as d3 from "d3";
 import React from "react";
 import Dropdown from "react-bootstrap/Dropdown";
 import DropdownButton from "react-bootstrap/DropdownButton";
+import "./CovidVisualizer.css";
 
 var unparsedCountryList = [];
 var dateRange = [];
@@ -55,48 +56,61 @@ export default class CovidVisualizer extends React.Component {
       this.node = this.node
         .append("g")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-      // add the path
-      this.node
-        .data([pathData[0]])
-        .append("path")
-        .attr("class", "countryPath")
-        .attr("class", "line")
-        .attr("d", valueline)
-        .style("stroke-width", "2px")
-        .style("stroke", function (d, i) {
-          return color[i];
-        });
 
       // Add the Y Axis
-      this.yAxis = this.node
-        .append("g")
-        .call(d3.axisLeft(y))
-        .style("color", "white");
+      this.yAxis = this.node.append("g").call(d3.axisLeft(y));
       // Add the X Axis
       this.node
         .append("g")
         .attr("transform", "translate(0," + height + ")")
-        .style("color", "white")
+        .attr("class", "y.axis")
         .call(d3.axisBottom(x));
-    } else {
-      y.domain([0, d3.max(caseRange)]);
-      this.yAxis.call(d3.axisLeft(y)).style("color", "white");
-      // add the path
-      // this path is only being rendered on the third selection.
-      console.log(pathData);
-      console.log(this.node.selectAll(".countryPath"));
+
       this.node
+        .select(".y.axis")
+        .append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("y", 6)
+        .attr("dy", "0.71em")
+        .attr("fill", "#000")
+        .text("Response Rate, %");
+
+      let dataPath = this.node
         .selectAll(".countryPath")
         .data(pathData)
         .enter()
+        .append("g")
+        .attr("class", "countryPath");
+      // add the path
+      dataPath
         .append("path")
-        .attr("class", "countryPath")
         .attr("class", "line")
         .attr("d", valueline)
         .style("stroke-width", "2px")
         .style("stroke", function (d, i) {
           return color[i];
-        });
+        })
+        .attr("fill", "none");
+    } else {
+      y.domain([0, d3.max(caseRange)]);
+      this.yAxis.call(d3.axisLeft(y));
+      let dataPath = this.node
+        .selectAll(".countryPath")
+        .data(pathData)
+        .enter()
+        .append("g")
+        .attr("class", "countryPath");
+      // add the path
+      dataPath
+        .append("path")
+        .data(pathData)
+        .attr("class", "line")
+        .attr("d", valueline)
+        .style("stroke-width", "2px")
+        .style("stroke", function (d, i) {
+          return color[i];
+        })
+        .attr("fill", "none");
     }
     this.setState({ firstCountrySelected: true });
   }
@@ -143,14 +157,14 @@ export default class CovidVisualizer extends React.Component {
       .select(this.myRef.current)
       .append("svg")
       .style("border-style", "solid")
-      .style("background-color", "black")
+      .style("border-width", "1px")
       .attr("width", width + margin.left + margin.right)
       .attr("height", height + margin.top + margin.bottom);
   }
 
   render() {
     return (
-      <div ref={this.myRef}>
+      <div id="graph" ref={this.myRef}>
         <DropdownButton
           id="dropdown-basic-button"
           onSelect={this.selectMultipleCountries.bind(this)}
