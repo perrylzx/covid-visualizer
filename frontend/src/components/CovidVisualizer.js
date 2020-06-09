@@ -38,10 +38,9 @@ export default class CovidVisualizer extends React.Component {
     var x = d3.scaleTime().range([0, width]);
     var y = d3.scaleLinear().range([height, 0]);
 
-    // define the 1st line
+    // define the line
     const valueline = d3
       .line()
-      // this uses the d3.scaleTime function in the variable x on the array of dates
       .x((d) => {
         return x(d.date);
       })
@@ -57,18 +56,23 @@ export default class CovidVisualizer extends React.Component {
         .append("g")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
+      // Add the Y Axis
+      this.yAxis = this.node.append("g").call(d3.axisLeft(y));
+
       // Add the X Axis
       this.node
         .append("g")
         .attr("transform", "translate(0," + height + ")")
         .call(d3.axisBottom(x));
 
+      // adding a group element for each path
       let dataPath = this.node
         .selectAll(".countryPath")
         .data(pathData)
         .enter()
         .append("g")
         .attr("class", "countryPath");
+
       // add the path
       dataPath
         .append("path")
@@ -79,12 +83,11 @@ export default class CovidVisualizer extends React.Component {
           return color[i];
         })
         .attr("fill", "none");
-
-      // Add the Y Axis
-      this.yAxis = dataPath.append("g").call(d3.axisLeft(y));
     } else {
+      // updating the new max y axis
       y.domain([0, d3.max(caseRange)]);
       this.yAxis.call(d3.axisLeft(y));
+
       // adding a group element for each path
       let dataPath = this.node
         .selectAll(".countryPath")
