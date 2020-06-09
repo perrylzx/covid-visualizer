@@ -57,23 +57,11 @@ export default class CovidVisualizer extends React.Component {
         .append("g")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-      // Add the Y Axis
-      this.yAxis = this.node.append("g").call(d3.axisLeft(y));
       // Add the X Axis
       this.node
         .append("g")
         .attr("transform", "translate(0," + height + ")")
-        .attr("class", "y.axis")
         .call(d3.axisBottom(x));
-
-      this.node
-        .select(".y.axis")
-        .append("text")
-        .attr("transform", "rotate(-90)")
-        .attr("y", 6)
-        .attr("dy", "0.71em")
-        .attr("fill", "#000")
-        .text("Response Rate, %");
 
       let dataPath = this.node
         .selectAll(".countryPath")
@@ -91,9 +79,13 @@ export default class CovidVisualizer extends React.Component {
           return color[i];
         })
         .attr("fill", "none");
+
+      // Add the Y Axis
+      this.yAxis = dataPath.append("g").call(d3.axisLeft(y));
     } else {
       y.domain([0, d3.max(caseRange)]);
       this.yAxis.call(d3.axisLeft(y));
+      // adding a group element for each path
       let dataPath = this.node
         .selectAll(".countryPath")
         .data(pathData)
