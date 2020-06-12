@@ -2,12 +2,13 @@ import * as d3 from "d3";
 import React from "react";
 import Dropdown from "react-bootstrap/Dropdown";
 import DropdownButton from "react-bootstrap/DropdownButton";
+import Spinner from "react-bootstrap/Spinner";
 import "./CovidVisualizer.css";
 
 var unparsedCountryList = [];
 var dateRange = [];
 var caseRange = [];
-var pathData = [];
+var countryCaseData = [];
 var color = d3.schemeCategory10;
 
 var margin = { top: 20, right: 20, bottom: 30, left: 50 },
@@ -27,19 +28,29 @@ export default class CovidVisualizer extends React.Component {
       selectedCountries: [],
       listOfCountries: [],
       firstCountrySelected: false,
+      selectedCountryIndex: 0,
+      dataLoaded: false,
     };
   }
-  // format the data
 
   parseTime = d3.timeParse("%m/%e/%y");
 
   drawChart() {
+    // the reason for removing the svg is to redraw the graph on every country selection so as to scale the data according to the y axis
+    d3.select(".mainGraph").remove();
+    let svg = d3
+      .select(".graphContainer")
+      .append("svg")
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom)
+      .attr("class", "mainGraph");
+
     // set the ranges
     var x = d3.scaleTime().range([0, width]);
     var y = d3.scaleLinear().range([height, 0]);
 
     // define the line
-    const valueline = d3
+    const countryLineData = d3
       .line()
       .x((d) => {
         return x(d.date);
@@ -47,71 +58,47 @@ export default class CovidVisualizer extends React.Component {
       .y((d) => {
         return y(d.cases);
       });
+
     // scale the range of the data
     x.domain(d3.extent(dateRange));
     y.domain([0, d3.max(caseRange)]);
 
-    if (this.state.firstCountrySelected === false) {
-      this.node = this.node
-        .append("g")
-        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    // appending a g element to group y axis, x axis, data, etc
+    svg = svg
+      .append("g")
+      .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-      // Add the Y Axis
-      this.yAxis = this.node.append("g").call(d3.axisLeft(y));
+    // Add the X Axis
+    svg
+      .append("g")
+      .attr("transform", "translate(0," + height + ")")
+      .call(d3.axisBottom(x));
 
-      // Add the X Axis
-      this.node
-        .append("g")
-        .attr("transform", "translate(0," + height + ")")
-        .call(d3.axisBottom(x));
+    // Add the Y Axis
+    this.yAxis = svg.append("g").call(d3.axisLeft(y));
 
-      // adding a group element for each path
-      let dataPath = this.node
-        .selectAll(".countryPath")
-        .data(pathData)
-        .enter()
-        .append("g")
-        .attr("class", "countryPath");
+    // adding a group element for each path
+    let countryPath = svg
+      .selectAll(".countryPath")
+      .data(countryCaseData)
+      .enter()
+      .append("g")
+      .attr("class", "countryPath");
 
-      // add the path
-      dataPath
-        .append("path")
-        .attr("class", "line")
-        .attr("d", valueline)
-        .style("stroke-width", "2px")
-        .style("stroke", function (d, i) {
-          return color[i];
-        })
-        .attr("fill", "none");
-    } else {
-      // updating the new max y axis
-      y.domain([0, d3.max(caseRange)]);
-      this.yAxis.call(d3.axisLeft(y));
-
-      // adding a group element for each path
-      let dataPath = this.node
-        .selectAll(".countryPath")
-        .data(pathData)
-        .enter()
-        .append("g")
-        .attr("class", "countryPath");
-      // add the path
-      dataPath
-        .append("path")
-        .data(pathData)
-        .attr("class", "line")
-        .attr("d", valueline)
-        .style("stroke-width", "2px")
-        .style("stroke", function (d, i) {
-          return color[i];
-        })
-        .attr("fill", "none");
-    }
-    this.setState({ firstCountrySelected: true });
+    // add the path
+    countryPath
+      .append("path")
+      .attr("class", "line")
+      .attr("d", countryLineData)
+      .style("stroke-width", "2px")
+      .style("stroke", function (d, i) {
+        return color[i];
+      })
+      .attr("fill", "none");
   }
 
-  // fetches the selected country from the dropdown and parses it for data
-  selectMultipleCountries(eventkey) {
+  // fetches the selected country from the dropdown and parses the data to a d3 readable format
+  selectCountries(eventkey) {
     this.state.selectedCountries.push(this.state.listOfCountries[eventkey]);
     this.state.covidCases.forEach((country) => {
       if (country.hasOwnProperty(this.state.listOfCountries[eventkey])) {
@@ -128,7 +115,7 @@ export default class CovidVisualizer extends React.Component {
         countryData.push(datesToCases);
       }
     }
-    pathData.push(countryData);
+    countryCaseData.push(countryData);
     this.drawChart();
   }
 
@@ -145,24 +132,34 @@ export default class CovidVisualizer extends React.Component {
         this.setState({
           covidCases: res[1],
           listOfCountries: countryListArray,
+          dataLoaded: true,
         });
       });
-    // appending svg to ref and a group element
-    this.node = d3
-      .select(this.myRef.current)
+    // appending an empty svg container for where the main visualization will be appended to in the drawChart function
+    d3.select(this.myRef.current)
       .append("svg")
       .style("border-style", "solid")
       .style("border-width", "1px")
       .attr("width", width + margin.left + margin.right)
-      .attr("height", height + margin.top + margin.bottom);
+      .attr("height", height + margin.top + margin.bottom)
+      .attr("class", "graphContainer");
   }
 
   render() {
     return (
       <div id="graph" ref={this.myRef}>
+        {this.state.dataLoaded ? (
+          console.log("success")
+        ) : (
+          <Spinner id="spinner" animation="border" role="status">
+            <span className="sr-only">Loading...</span>
+          </Spinner>
+        )}
+
+        {/* this dropdown sends the index of the chosen country to the selectCountries function */}
         <DropdownButton
           id="dropdown-basic-button"
-          onSelect={this.selectMultipleCountries.bind(this)}
+          onSelect={this.selectCountries.bind(this)}
           title="Country"
         >
           {this.state.listOfCountries.map((country, i) => (
