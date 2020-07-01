@@ -43,6 +43,7 @@ router.get("/", (req, res) => {
     .on("error", (error) => console.error(error))
     // on data event, every append every chunk of data to countryData array
     .on("data", (chunk) => {
+      console.log(chunk);
       const countryToCases = chunk["Country/Region"];
       countryList.push(countryToCases);
       delete chunk["Lat"];
