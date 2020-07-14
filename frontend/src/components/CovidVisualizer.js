@@ -4,11 +4,13 @@ import Dropdown from "react-bootstrap/Dropdown";
 import DropdownButton from "react-bootstrap/DropdownButton";
 import Spinner from "react-bootstrap/Spinner";
 import "./CovidVisualizer.css";
+import { select } from "d3";
 
 var unparsedCountryList = [];
 var dateRange = [];
 var caseRange = [];
-var countryCaseData = [];
+var countryCaseData = {countryCases : [],
+countryName : ''};
 var color = d3.schemeCategory10;
 
 var margin = { top: 20, right: 20, bottom: 30, left: 50 },
@@ -36,6 +38,7 @@ export default class CovidVisualizer extends React.Component {
   parseTime = d3.timeParse("%m/%e/%y");
 
   drawChart() {
+    console.log(this.state.listOfCountries)
     // the reason for removing the svg is to redraw the graph on every country selection so as to scale the data according to the y axis
     d3.select(".mainGraph").remove();
     let svg = d3
@@ -78,24 +81,44 @@ export default class CovidVisualizer extends React.Component {
     this.yAxis = svg.append("g").call(d3.axisLeft(y));
 
     // adding a group element for each path
-    let countryPath = svg
+    let countryPaths = svg
       .selectAll(".countryPath")
-      .data(countryCaseData)
+      .data(countryCaseData.countryCases)
       .enter()
       .append("g")
       .attr("class", "countryPath");
 
     // add the path
-    countryPath
+    let countryPath = countryPaths
       .append("path")
       .attr("class", "line")
+      .attr('id', function(d) {
+        return d[0].name
+      })
       .attr("d", countryLineData)
       .style("stroke-width", "2px")
       .style("stroke", function (d, i) {
         return color[i];
       })
       .attr("fill", "none");
+
+    d3.selectAll('countrylabel')
+    .data(d3.selectAll(countryPath)._groups[0]._groups[0])
+      countryPaths.append('text')
+      .text(function(d) {
+        return (d[0].name)
+      })
+      .attr('class', 'countrylabel')
+      .attr('y', function(d) {
+        return d3.select(`#${d[0].name}`).node().getBBox().y
+        // console.log(d3.select(`#${d[0].name}`).node().getBBox())
+      })
+      .attr('x', function() {
+        return '800'
+      })
+    d3.selectAll('countrylabel').remove()
   }
+  
 
   // fetches the selected country from the dropdown and parses the data to a d3 readable format
   selectCountries(eventkey) {
@@ -111,16 +134,16 @@ export default class CovidVisualizer extends React.Component {
         key = this.parseTime(key);
         dateRange.push(key);
         caseRange.push(value);
-        const datesToCases = { date: key, cases: value };
+        const datesToCases = { date: key, cases: value, name: this.state.listOfCountries[eventkey] };
         countryData.push(datesToCases);
       }
     }
-    countryCaseData.push(countryData);
+    countryCaseData.countryCases.push(countryData);
     this.drawChart();
   }
 
   async componentDidMount() {
-    await fetch("https://covid-vizua.herokuapp.com/download")
+    await fetch("http://localhost:3001/download")
       .then((res) => {
         return res.json();
       })
