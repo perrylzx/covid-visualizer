@@ -4,7 +4,6 @@ import Dropdown from "react-bootstrap/Dropdown";
 import DropdownButton from "react-bootstrap/DropdownButton";
 import Spinner from "react-bootstrap/Spinner";
 import "./CovidVisualizer.css";
-import { select } from "d3";
 
 var unparsedCountryList = [];
 var dateRange = [];
@@ -38,7 +37,6 @@ export default class CovidVisualizer extends React.Component {
   parseTime = d3.timeParse("%m/%e/%y");
 
   drawChart() {
-    console.log(this.state.listOfCountries)
     // the reason for removing the svg is to redraw the graph on every country selection so as to scale the data according to the y axis
     d3.select(".mainGraph").remove();
     let svg = d3
@@ -92,8 +90,8 @@ export default class CovidVisualizer extends React.Component {
     let countryPath = countryPaths
       .append("path")
       .attr("class", "line")
-      .attr('id', function(d) {
-        return d[0].name
+      .attr('id', function(d, i) {
+        return i
       })
       .attr("d", countryLineData)
       .style("stroke-width", "2px")
@@ -102,19 +100,18 @@ export default class CovidVisualizer extends React.Component {
       })
       .attr("fill", "none");
 
-    d3.selectAll('countrylabel')
-    .data(d3.selectAll(countryPath)._groups[0]._groups[0])
+    d3.selectAll('.countrylabel')
+    .data(d3.selectAll(countryPath))
       countryPaths.append('text')
       .text(function(d) {
         return (d[0].name)
       })
       .attr('class', 'countrylabel')
-      .attr('y', function(d) {
-        return d3.select(`#${d[0].name}`).node().getBBox().y
-        // console.log(d3.select(`#${d[0].name}`).node().getBBox())
+      .attr('y', function(d, i) {
+        return (d3.select(`[id="${i}"]`).node().getBBox().y)
       })
       .attr('x', function() {
-        return '800'
+        return '700'
       })
     d3.selectAll('countrylabel').remove()
   }
@@ -122,7 +119,8 @@ export default class CovidVisualizer extends React.Component {
 
   // fetches the selected country from the dropdown and parses the data to a d3 readable format
   selectCountries(eventkey) {
-    this.state.selectedCountries.push(this.state.listOfCountries[eventkey]);
+    const newSelectedCountry  = this.state.selectedCountries.concat(this.state.listOfCountries[eventkey])
+    this.setState({selectedCountries : newSelectedCountry})
     this.state.covidCases.forEach((country) => {
       if (country.hasOwnProperty(this.state.listOfCountries[eventkey])) {
         unparsedCountryList.push(country[this.state.listOfCountries[eventkey]]);
