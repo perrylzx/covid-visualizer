@@ -141,7 +141,7 @@ export default class CovidVisualizer extends React.Component {
   }
 
   async componentDidMount() {
-    await fetch("http://localhost:3001/download")
+    await fetch("https://covid-vizua.herokuapp.com/download")
       .then((res) => {
         return res.json();
       })
