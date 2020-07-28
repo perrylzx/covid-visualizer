@@ -191,7 +191,7 @@ export default class CovidVisualizer extends React.Component {
             <div>
               <Button
                 onClick={function () {
-                  countryCaseData = [];
+                  countryCaseData = { countryCases: [], countryName: "" };
                   caseRange = [];
                   unparsedCountryList = [];
                   d3.select(".mainGraph").remove();
