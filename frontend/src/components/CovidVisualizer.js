@@ -9,7 +9,7 @@ import "./CovidVisualizer.css";
 var unparsedCountryList = [];
 var dateRange = [];
 var caseRange = [];
-var countryCaseData = [];
+var countryCaseData = { countryCases: [], countryName: "" };
 var color = d3.schemeCategory10;
 
 var margin = { top: 20, right: 20, bottom: 30, left: 50 },
@@ -79,28 +79,49 @@ export default class CovidVisualizer extends React.Component {
     this.yAxis = svg.append("g").call(d3.axisLeft(y));
 
     // adding a group element for each path
-    let countryPath = svg
+    let countryPaths = svg
       .selectAll(".countryPath")
-      .data(countryCaseData)
+      .data(countryCaseData.countryCases)
       .enter()
       .append("g")
       .attr("class", "countryPath");
 
     // add the path
-    countryPath
+    let countryPath = countryPaths
       .append("path")
       .attr("class", "line")
+      .attr("id", function (d, i) {
+        return i;
+      })
       .attr("d", countryLineData)
       .style("stroke-width", "2px")
       .style("stroke", function (d, i) {
         return color[i];
       })
       .attr("fill", "none");
+
+    d3.selectAll(".countrylabel").data(d3.selectAll(countryPath));
+    countryPaths
+      .append("text")
+      .text(function (d) {
+        return d[0].name;
+      })
+      .attr("class", "countrylabel")
+      .attr("y", function (d, i) {
+        return d3.select(`[id="${i}"]`).node().getBBox().y;
+      })
+      .attr("x", function () {
+        return "700";
+      });
+    d3.selectAll("countrylabel").remove();
   }
 
   // fetches the selected country from the dropdown and parses the data to a d3 readable format
   selectCountries(eventkey) {
-    this.state.selectedCountries.push(this.state.listOfCountries[eventkey]);
+    const newSelectedCountry = this.state.selectedCountries.concat(
+      this.state.listOfCountries[eventkey]
+    );
+    this.setState({ selectedCountries: newSelectedCountry });
     this.state.covidCases.forEach((country) => {
       if (country.hasOwnProperty(this.state.listOfCountries[eventkey])) {
         unparsedCountryList.push(country[this.state.listOfCountries[eventkey]]);
@@ -112,8 +133,12 @@ export default class CovidVisualizer extends React.Component {
         key = this.parseTime(key);
         dateRange.push(key);
         caseRange.push(value);
-        const datesToCases = { date: key, cases: value };
-        countryData.push(datesToCases);
+        const datesToCases = {
+          date: key,
+          cases: value,
+          name: this.state.listOfCountries[eventkey],
+        };
+        countryCaseData.countryCases.push(countryData);
       }
     }
     console.log(caseRange);
