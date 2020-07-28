@@ -1,5 +1,6 @@
 import * as d3 from "d3";
 import React from "react";
+import Button from "react-bootstrap/Button";
 import Dropdown from "react-bootstrap/Dropdown";
 import DropdownButton from "react-bootstrap/DropdownButton";
 import Spinner from "react-bootstrap/Spinner";
@@ -115,6 +116,7 @@ export default class CovidVisualizer extends React.Component {
         countryData.push(datesToCases);
       }
     }
+    console.log(caseRange);
     countryCaseData.push(countryData);
     this.drawChart();
   }
@@ -149,25 +151,39 @@ export default class CovidVisualizer extends React.Component {
     return (
       <div id="graph" ref={this.myRef}>
         {this.state.dataLoaded ? (
-          console.log("success")
+          <div id="button-group">
+            <DropdownButton
+              id="dropdown-basic-button"
+              onSelect={this.selectCountries.bind(this)}
+              title="Country"
+            >
+              {this.state.listOfCountries.map((country, i) => (
+                <Dropdown.Item key={i} eventKey={i}>
+                  {country}
+                </Dropdown.Item>
+              ))}
+            </DropdownButton>
+            <div>
+              <Button
+                onClick={function () {
+                  countryCaseData = [];
+                  caseRange = [];
+                  unparsedCountryList = [];
+                  d3.select(".mainGraph").remove();
+                }}
+                id="reset-button"
+                variant="primary"
+              >
+                Reset
+              </Button>{" "}
+            </div>
+          </div>
         ) : (
           <Spinner id="spinner" animation="border" role="status">
             <span className="sr-only">Loading...</span>
           </Spinner>
         )}
-
         {/* this dropdown sends the index of the chosen country to the selectCountries function */}
-        <DropdownButton
-          id="dropdown-basic-button"
-          onSelect={this.selectCountries.bind(this)}
-          title="Country"
-        >
-          {this.state.listOfCountries.map((country, i) => (
-            <Dropdown.Item key={i} eventKey={i}>
-              {country}
-            </Dropdown.Item>
-          ))}
-        </DropdownButton>
       </div>
     );
   }
