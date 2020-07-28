@@ -118,6 +118,7 @@ export default class CovidVisualizer extends React.Component {
 
   // fetches the selected country from the dropdown and parses the data to a d3 readable format
   selectCountries(eventkey) {
+    console.log("hello");
     const newSelectedCountry = this.state.selectedCountries.concat(
       this.state.listOfCountries[eventkey]
     );
@@ -138,11 +139,10 @@ export default class CovidVisualizer extends React.Component {
           cases: value,
           name: this.state.listOfCountries[eventkey],
         };
-        countryCaseData.countryCases.push(countryData);
+        countryData.push(datesToCases);
       }
     }
-    console.log(caseRange);
-    countryCaseData.push(countryData);
+    countryCaseData.countryCases.push(countryData);
     this.drawChart();
   }
 
