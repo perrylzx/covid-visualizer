@@ -119,6 +119,7 @@ export default class CovidVisualizer extends React.Component {
 
   // fetches the selected country from the dropdown and parses the data to a d3 readable format
   selectCountries(eventkey) {
+    console.log('hello')
     const newSelectedCountry  = this.state.selectedCountries.concat(this.state.listOfCountries[eventkey])
     this.setState({selectedCountries : newSelectedCountry})
     this.state.covidCases.forEach((country) => {
